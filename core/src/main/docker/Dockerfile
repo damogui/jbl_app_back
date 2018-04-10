@@ -1,0 +1,10 @@
+FROM handmobile/jdk8
+
+ENV CATALINA_HOME /usr/local/tomcat
+ENV PATH $CATALINA_HOME/bin:$PATH
+ENV WAR_NAME=core.war
+RUN mkdir -p "$CATALINA_HOME"
+WORKDIR $CATALINA_HOME
+ADD $WAR_NAME $CATALINA_HOME/webapps/$WAR_NAME
+EXPOSE 8080
+CMD ["catalina.sh", "run"]

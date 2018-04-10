@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="hmap.core.push.mapper.PushMsgMapper">
+
+    <select id="getUserCode" resultType="string"
+            parameterType="string">
+        SELECT ju.user_code
+        FROM   jb_user ju
+        where  1=1
+        and ju.mobile_phone = '13111111111'
+    </select>
+
+</mapper>

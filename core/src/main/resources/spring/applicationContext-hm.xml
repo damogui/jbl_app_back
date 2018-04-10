@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd">
+
+
+    <!--<bean class="hmap.core.beans.CorsConfigurerAdapter"></bean>-->
+
+    <bean id="aliYunUploaderService"
+          class="hmap.core.hms.uploader.service.impl.AliYunUploaderServiceImpl">
+        <property name="name" value="aliyun"/>
+    </bean>
+    <bean id="sftpUploaderService"
+          class="hmap.core.hms.uploader.service.impl.SftpUploaderServiceImpl">
+        <property name="name" value="sftp"/>
+        <property name="host" value="ftp.host"></property>
+        <property name="port" value="ftp.port"></property>
+        <property name="username" value="ftp.username"></property>
+        <property name="password" value="ftp.password"></property>
+        <property name="uploadDir" value="ftp.uploadDir"></property>
+        <property name="outUrlPrefix" value="ftp.outUrlPrefix"></property>
+        <property name="thumbnailScale" value="ftp.thumbnailScale"></property>
+        <property name="thumbnailOutputQuality" value="ftp.thumbnailOutputQuality"></property>
+    </bean>
+
+    <bean class="hmap.core.hms.uploader.service.impl.UploaderMangerImpl">
+        <property name="uploads">
+            <list>
+                <ref bean="sftpUploaderService"/>
+                <ref bean="aliYunUploaderService"/>
+            </list>
+        </property>
+    </bean>
+    <bean class="hmap.core.beans.JDBCSqlSessionFactory">
+        <property name="dataSource" ref="dataSource_jingbo"/>
+    </bean>
+
+    <bean id="dataSource_jingbo" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver" />
+        <property name="url" value="${otmdb.url}" />
+        <property name="username" value="${otmdb.username}" />
+        <property name="password" value="${otmdb.password}" />
+
+
+        <!-- druid 连接池的 -->
+        <property name="filters" value="stat" />
+
+        <!-- 下面druid 和 dbcp 连接池通用的 ↓↓↓↓↓↓↓↓↓↓↓↓ -->
+        <!--maxActive: 最大连接数量 -->
+        <property name="maxActive" value="20" />
+        <!--initialSize: 初始化连接 -->
+        <property name="initialSize" value="5" />
+
+    </bean>
+
+    <bean id="authenticationFailureListener" class="hmap.core.hms.system.service.impl.AuthenticationFailureListener"></bean>
+    <bean id="countRequestConsumer" class="hmap.core.hms.system.message.impl.CountRequestConsumer"></bean>
+    <bean id="auditLogConsumer" class="hmap.core.hms.audit.message.impl.AuditLogConsumer"></bean>
+
+
+    <bean class="hmap.core.hms.api.command.HystrixSetupConfig">
+        <constructor-arg index="0" ref="dataSource"/>
+    </bean>
+
+    <bean id="plsqlBean" class="hmap.core.hms.api.service.impl.PLSQLApiServiceImpl"></bean>
+    <bean id="restBean" class="hmap.core.service.impl.JbRestApiServiceImpl"></bean>
+    <bean id="soapBean" class="hmap.core.hms.api.service.impl.SoapApiServiceImpl"></bean>
+    <bean id="mockBean" class="hmap.core.hms.api.service.impl.MockApiServiceImpl"></bean>
+
+
+
+</beans>

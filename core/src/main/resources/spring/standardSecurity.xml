@@ -1,0 +1,125 @@
+<!-- 此文件用于标准登录方式 -->
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+                                 http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.0.xsd">
+    <http access-decision-manager-ref="accessDecisionManager">
+        <csrf disabled="true"/>
+
+        <intercept-url pattern="/resources/**" access="permitAll"/>
+        <intercept-url pattern="/lib/**" access="permitAll"/>
+        <intercept-url pattern="/appDownload/*" access="permitAll" />
+        <intercept-url pattern="/authentication" access="permitAll"/>
+        <intercept-url pattern="/403.html" access="permitAll"/>
+        <intercept-url pattern="/websocket" access="permitAll"/>
+        <intercept-url pattern="/login.html" access="permitAll"/>
+        <intercept-url pattern="/verifiCode" access="permitAll"/>
+        <intercept-url pattern="/common/**" access="permitAll"/>
+        <intercept-url pattern="/hms/**" access="permitAll"/>
+        <intercept-url pattern="/mail/**" access="permitAll"/>
+        <intercept-url pattern="/metrics/**" access="permitAll"/>
+        <intercept-url pattern="/swagger-resources/**" access="permitAll"/>
+        <intercept-url pattern="/**" access="hasRole('ROLE_USER')"/>
+        <intercept-url pattern="/api/**" access="permitAll" method="OPTIONS"/>
+        <intercept-url pattern="/appDownload/**" access="permitAll" method="OPTIONS"/>
+        <intercept-url pattern="/r/api/**" access="permitAll" method="OPTIONS"/>
+        <intercept-url pattern="/i/api/**" access="permitAll" method="OPTIONS"/>
+        <intercept-url pattern="/**" access="permitAll" method="OPTIONS"/>
+        <access-denied-handler error-page="/403.html"/>
+
+
+        <form-login login-page='/403.html' authentication-success-handler-ref="successHandler"
+                    authentication-failure-url="/403.html"/>
+        <!-- 验证码拦截器 -->
+        <custom-filter ref="captchaVerifierFilter" before="FORM_LOGIN_FILTER"/>
+
+        <logout logout-url="/logout"/>
+
+        <headers defaults-disabled="true">
+            <cache-control/>
+        </headers>
+    </http>
+
+
+    <!-- 认证管理器,确定用户,角色及相应的权限 -->
+    <beans:bean id="accessDecisionManager"
+                class="org.springframework.security.access.vote.UnanimousBased">
+        <!-- 投票器 -->
+        <beans:constructor-arg>
+            <beans:list>
+                <!---->
+                <beans:bean
+                        class="org.springframework.security.web.access.expression.WebExpressionVoter"/>
+                <beans:bean class="org.springframework.security.access.vote.RoleVoter"/>
+                <beans:bean class="org.springframework.security.access.vote.AuthenticatedVoter"/>
+                <!--<beans:bean class="com.hand.hap.security.PermissionVoter"/>-->
+            </beans:list>
+        </beans:constructor-arg>
+    </beans:bean>
+
+    <!--默认验证，使用本地数据库，可多种认证方式并存 -->
+    <authentication-manager alias="defaultAuthenticationManager">
+        <authentication-provider ref="loginAuthenticationProvider"/>
+        <authentication-provider ref="daoAuthenticationProvider"/>
+    </authentication-manager>
+
+    <!--<beans:bean id="daoAuthenticationProvider"-->
+                <!--class="org.springframework.security.authentication.dao.DaoAuthenticationProvider">-->
+        <!--<beans:property name="userDetailsService" ref="customUserDetailService" />-->
+        <!--<beans:property name="passwordEncoder" ref="passwordManager" ></beans:property>-->
+    <!--</beans:bean>-->
+    <beans:bean id="customUserDetailService" class="hmap.core.security.login.impl.HmapUserDetailsService">
+    </beans:bean>
+
+    <!--客户化登录组件-->
+    <!--如果需要使用中台之外的登录方式，需要使用下面的开发方式进行开发，以下为样例，ldap db rest等-->
+    <beans:bean id="daoAuthenticationProvider"
+                class="hmap.core.security.login.impl.LoginAuthenticationProvider">
+        <beans:property name="userDetailsService" ref="customUserDetailService" />
+        <beans:property name="passwordEncoder" ref="passwordManager" />
+    </beans:bean>
+
+    <!--ldap登录组件-->
+    <beans:bean id="ldapUserAuthServiceImpl" class="hmap.core.security.login.impl.LDAPUserAuthServiceImpl">
+        <beans:property name="name" value="ldap" />
+    </beans:bean>
+
+    <!--db登录组件-->
+    <!--
+    <beans:bean id="dbUserAuthServiceImpl" class="hmap.core.security.login.impl.DBUserAuthServiceImplImpl">
+        <beans:property name="name" value="db" />
+    </beans:bean>
+    -->
+    <!--rest登录组件-->
+    <!--
+    <beans:bean id="restUserAuthServiceImpl" class="hmap.core.security.login.impl.RestUserAuthServiceImplImpl">
+        <beans:property name="name" value="rest" />
+    </beans:bean>
+    -->
+    <!--wx登录组件-->
+    <!--
+    <beans:bean id="wxUserAuthServiceImpl" class="hmap.core.security.login.impl.WxUserAuthServiceImplImpl">
+        <beans:property name="name" value="wx" />
+    </beans:bean>
+    -->
+
+    <beans:bean id="loginAuthenticationProvider"
+                class="hmap.core.login.service.impl.LoginAuthenticationProvider">
+        <beans:property name="userDetailsService" ref="loginUserDetailService" />
+    </beans:bean>
+
+    <beans:bean id="loginUserDetailService" class="hmap.core.login.service.impl.LoginUserDetailServiceImpl">
+    </beans:bean>
+
+
+    <beans:bean id="captchaVerifierFilter" class="com.hand.hap.security.CaptchaVerifierFilter">
+        <beans:property name="captchaField" value="verifiCode"/>
+    </beans:bean>
+
+    <beans:bean id="successHandler"
+                class="com.hand.hap.security.CustomAuthenticationSuccessHandler">
+        <beans:property name="defaultTargetUrl" value="/role"/>
+    </beans:bean>
+
+</beans:beans>
